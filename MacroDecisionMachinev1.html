@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Macro Decision Machine v1.0 — Checklist & Score</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #141924;
+    --panel-2: #1a2030;
+    --text: #e8ecf1;
+    --muted: #9aa7b6;
+    --accent: #4cc9f0;
+    --accent-2: #80ffea;
+    --warn: #ffbf69;
+    --danger: #ff6b6b;
+    --ok: #7ae582;
+    --border: #2a3550;
+    --shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  }
+  .wrap { max-width: 1100px; margin: 32px auto; padding: 0 16px; }
+  header {
+    background: linear-gradient(180deg, #171c28 0%, #111622 100%);
+    border: 1px solid var(--border); border-radius: 14px; padding: 18px 18px;
+    box-shadow: var(--shadow); margin-bottom: 18px;
+  }
+  h1 { margin: 0 0 6px; font-size: 22px; letter-spacing: .2px; }
+  .sub { color: var(--muted); font-size: 13px; }
+
+  .grid {
+    display: grid; gap: 14px;
+    grid-template-columns: 1.2fr 1fr;
+  }
+  @media (max-width: 980px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: var(--shadow);
+  }
+  .card h2 {
+    font-size: 16px; margin: 0; padding: 14px 16px;
+    background: var(--panel-2); border-bottom: 1px solid var(--border);
+    border-radius: 12px 12px 0 0;
+  }
+  .section { padding: 12px 16px 14px; }
+
+  .signal { border-bottom: 1px dashed var(--border); padding: 12px 0; }
+  .signal:last-child { border-bottom: 0; }
+
+  .sig-title { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .badge {
+    font-size: 11px; padding: 2px 8px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--muted);
+    background: #111725;
+  }
+
+  .row { display: flex; gap: 10px; align-items: flex-start; }
+  .row + .row { margin-top: 8px; }
+  .chk {
+    appearance: none; width: 18px; height: 18px; border-radius: 6px;
+    border: 2px solid var(--border); display: inline-grid; place-items: center;
+    cursor: pointer; background: #0e1422;
+  }
+  .chk:checked {
+    background: var(--accent); border-color: #2d8ec0;
+    box-shadow: 0 0 0 3px rgba(76,201,240,0.15) inset;
+  }
+  .lbl { flex: 1; color: var(--text); }
+  .links { display: flex; flex-wrap: wrap; gap: 6px; }
+  .link {
+    font-size: 12px; text-decoration: none; color: var(--accent);
+    padding: 4px 8px; border: 1px solid var(--border); border-radius: 8px;
+    background: #0f1524;
+  }
+  .help { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .muted { color: var(--muted); }
+
+  .score {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px;
+  }
+  .kpi {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px; text-align: center; box-shadow: var(--shadow);
+  }
+  .kpi .big { font-size: 36px; font-weight: 700; letter-spacing: .5px; }
+  .kpi small { display: block; color: var(--muted); margin-top: 6px; }
+
+  .guidance {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px; margin-top: 10px;
+  }
+  .pill { padding: 2px 8px; border-radius: 999px; font-size: 12px; border: 1px solid var(--border); }
+  .good { color: #b6ffd3; background:#0f2318; border-color:#244c34; }
+  .warn { color: #ffe7b6; background:#231e0f; border-color:#4c4024; }
+  .bad  { color: #ffc1c1; background:#2a1515; border-color:#5a2a2a; }
+
+  .actions { display: flex; gap: 8px; margin-top: 10px; }
+  button {
+    cursor: pointer; color: var(--text); background: #1c2436; border: 1px solid var(--border);
+    padding: 10px 12px; border-radius: 10px; font-weight: 600;
+  }
+  button.primary { background: linear-gradient(180deg, #243145 0%, #182237 100%); border-color: #2d3a55; }
+  button.danger { background: #2a1820; border-color: #4a2a36; }
+  .note { width: 100%; background: #0f1522; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px; min-height: 84px; }
+
+  .small { font-size: 12px; color: var(--muted); }
+  .footer { margin-top: 18px; color: var(--muted); font-size: 12px; text-align: center; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Macro Decision Machine v1.0</h1>
+      <div class="sub">Tick your checks after reviewing each link. Score updates in real time. Your choices persist in this browser.</div>
+    </header>
+
+    <div class="grid">
+      <!-- Left: Checklist -->
+      <div class="card">
+        <h2>Weekly Macro Checklist (0–5)</h2>
+        <div class="section" id="checklist">
+
+          <!-- Signal 1 -->
+          <div class="signal" data-signal="liq">
+            <div class="sig-title">
+              <strong>1) Global Liquidity Direction</strong>
+              <span class="badge">Need ≥2 of 3 to score</span>
+            </div>
+            <div class="row">
+              <input type="checkbox" class="chk" data-key="liq-fed" />
+              <div class="lbl">
+                Fed Balance Sheet 4-week change &gt; 0
+                <div class="links">
+                  <a class="link" href="https://fred.stlouisfed.org/series/WALCL" target="_blank">FRED: WALCL</a>
+                  <a class="link" href="https://fred.stlouisfed.org/series/WALCL/downloaddata" target="_blank">CSV</a>
+                </div>
+                <div class="help">Rising 4-week sum implies net liquidity tailwind.</div>
+              </div>
+            </div>
+            <div class="row">
+              <input type="checkbox" class="chk" data-key="liq-hy" />
+              <div class="lbl">
+                HY credit spread falling over last 4 weeks
+                <div class="links">
+                  <a class="link" href="https://fred.stlouisfed.org/series/BAMLH0A0HYM2" target="_blank">FRED: HY OAS</a>
+                </div>
+                <div class="help">Tightening spreads = risk appetite.</div>
+              </div>
+            </div>
+            <div class="row">
+              <input type="checkbox" class="chk" data-key="liq-dxy" />
+              <div class="lbl">
+                DXY below 200-day MA
+                <div class="links">
+                  <a class="link" href="https://www.tradingview.com/chart/?symbol=TVC%3ADXY" target="_blank">TradingView: DXY</a>
+                </div>
+                <div class="help">Weak USD lubricates global risk.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Signal 2 -->
+          <div class="signal" data-signal="pmi">
+            <div class="sig-title">
+              <strong>2) Growth Regime (PMIs)</strong>
+              <span class="badge">Need both to score</span>
+            </div>
+            <div class="row">
+              <input type="checkbox" class="chk" data-key="pmi-us" />
+              <div class="lbl">
+                US Manufacturing PMI &gt; 50 and rising
+                <div class="links">
+                  <a class="link" href="https://www.spglobal.com/marketintelligence/en/mi/research-analysis/global-pmi" target="_blank">S&P Global PMI</a>
+                  <a class="link" href="https://www.investing.com/economic-calendar/ism-manufacturing-pmi-173" target="_blank">Calendar (alt)</a>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <input type="checkbox" class="chk" data-key="pmi-global" />
+              <div class="lbl">
+                Global Composite PMI &gt; 50 and rising
+                <div class="links">
+                  <a class="link" href="https://www.pmi.spglobal.com/Public/Home/PressRelease" target="_blank">Global Composite (press)</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Signal 3 -->
+          <div class="signal" data-signal="usd">
+            <div class="sig-title">
+              <strong>3) USD Macro Trend</strong>
+              <span class="badge">Need both to score</span>
+            </div>
+            <div class="row">
+              <input type="checkbox" class="chk" data-key="usd-dxy200" />
+              <div class="lbl">
+                DXY below 200-day MA
+                <div class="links">
+                  <a class="link" href="https://www.tradingview.com/chart/?symbol=TVC%3ADXY" target="_blank">TradingView: DXY</a>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <input type="checkbox" class="chk" data-key="usd-eur200" />
+              <div class="lbl">
+                EURUSD above 200-day MA and making higher swing high
+                <div class="links">
+                  <a class="link" href="https://www.tradingview.com/chart/?symbol=OANDA%3AEURUSD" target="_blank">TradingView: EURUSD</a>
+                </div>
+                <div class="help">Use a simple swing-high marker on daily/weekly.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Signal 4 -->
+          <div class="signal" data-signal="credit">
+            <div class="sig-title">
+              <strong>4) Credit Appetite (HYG/LQD)</strong>
+              <span class="badge">Need both to score</span>
+            </div>
+            <div class="row">
+              <input type="checkbox" class="chk" data-key="cr-hh" />
+              <div class="lbl">
+                HYG/LQD ratio making higher highs
+                <div class="links">
+                  <a class="link" href="https://www.tradingview.com/chart/?symbol=AMEX%3AHYG" target="_blank">HYG chart</a>
+                  <a class="link" href="https://www.tradingview.com/chart/?symbol=AMEX%3ALQD" target="_blank">LQD chart</a>
+                </div>
+                <div class="help">Create a custom TV chart: HYG/LQD.</div>
+              </div>
+            </div>
+            <div class="row">
+              <input type="checkbox" class="chk" data-key="cr-ma" />
+              <div class="lbl">
+                HYG/LQD ratio above 50-day MA
+                <div class="links">
+                  <a class="link" href="https://www.tradingview.com/chart/?symbol=AMEX%3AHYG/AMEX%3ALQD" target="_blank">TradingView: HYG/LQD</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Signal 5 -->
+          <div class="signal" data-signal="lead">
+            <div class="sig-title">
+              <strong>5) Risk Leadership</strong>
+              <span class="badge">Need ≥2 of 3 to score</span>
+            </div>
+            <div class="row">
+              <input type="checkbox" class="chk" data-key="lead-qqqspy" />
+              <div class="lbl">
+                QQQ/SPY ratio rising
+                <div class="links">
+                  <a class="link" href="https://www.tradingview.com/chart/?symbol=NASDAQ%3AQQQ/AMEX%3ASPY" target="_blank">QQQ/SPY</a>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <input type="checkbox" class="chk" data-key="lead-spyief" />
+              <div class="lbl">
+                SPY/IEF ratio rising
+                <div class="links">
+                  <a class="link" href="https://www.tradingview.com/chart/?symbol=AMEX%3ASPY/NASDAQ%3AIEF" target="_blank">SPY/IEF</a>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <input type="checkbox" class="chk" data-key="lead-eemspy" />
+              <div class="lbl">
+                EEM outperforming SPY (EEM/SPY rising)
+                <div class="links">
+                  <a class="link" href="https://www.tradingview.com/chart/?symbol=AMEX%3AEEM/AMEX%3ASPY" target="_blank">EEM/SPY</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="primary" id="reset-week">Reset checks</button>
+            <button class="danger" id="clear-storage">Clear all saved data</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Score & Guidance -->
+      <div class="card">
+        <h2>Score & Sizing Guidance</h2>
+        <div class="section">
+          <div class="score">
+            <div class="kpi">
+              <div class="big" id="score">0/5</div>
+              <small>Macro score</small>
+            </div>
+            <div class="kpi">
+              <div class="big" id="sizing">0%</div>
+              <small>Suggested risk per trade</small>
+            </div>
+          </div>
+
+          <div class="guidance" id="regime">
+            <div class="pill bad">Regime: Risk-Off / Stand Aside</div>
+            <div class="small" id="guidetext" style="margin-top:6px;">
+              Score ≤1: avoid swings; hedge only; keep powder dry.
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:12px;">
+            <h2>Notes for the week</h2>
+            <div class="section">
+              <textarea id="notes" class="note" placeholder="Key narratives, what to hunt (e.g., XAU pullbacks, NASDAQ continuation), what to avoid..."></textarea>
+              <div class="actions">
+                <button class="primary" id="save-notes">Save notes</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer">
+            <p>Sizing rule: 1R = 1% of equity (ATR-based stops). Upsize to 2–3% only at 4–5/5 score with strong technicals.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const CHECK_KEYS = [
+    "liq-fed","liq-hy","liq-dxy",
+    "pmi-us","pmi-global",
+    "usd-dxy200","usd-eur200",
+    "cr-hh","cr-ma",
+    "lead-qqqspy","lead-spyief","lead-eemspy"
+  ];
+
+  // Load saved state
+  function loadState(){
+    const state = JSON.parse(localStorage.getItem("macroChecklistV1")||"{}");
+    CHECK_KEYS.forEach(k=>{
+      const el = document.querySelector(`.chk[data-key="${k}"]`);
+      if (el && typeof state[k] === "boolean") el.checked = state[k];
+    });
+    const notes = localStorage.getItem("macroNotesV1");
+    if (notes !== null) document.getElementById("notes").value = notes;
+  }
+  function saveState(){
+    const state = {};
+    CHECK_KEYS.forEach(k=>{
+      const el = document.querySelector(`.chk[data-key="${k}"]`);
+      if (el) state[k] = el.checked;
+    });
+    localStorage.setItem("macroChecklistV1", JSON.stringify(state));
+  }
+
+  // Scoring logic
+  function computeScore(){
+    const g = k => document.querySelector(`.chk[data-key="${k}"]`)?.checked;
+
+    // Signal 1: Liquidity (need >=2/3)
+    const liqCount = [g("liq-fed"), g("liq-hy"), g("liq-dxy")].filter(Boolean).length;
+    const s1 = (liqCount >= 2) ? 1 : 0;
+
+    // Signal 2: PMI (need both)
+    const s2 = (g("pmi-us") && g("pmi-global")) ? 1 : 0;
+
+    // Signal 3: USD Trend (need both)
+    const s3 = (g("usd-dxy200") && g("usd-eur200")) ? 1 : 0;
+
+    // Signal 4: Credit Appetite (need both)
+    const s4 = (g("cr-hh") && g("cr-ma")) ? 1 : 0;
+
+    // Signal 5: Leadership (need >=2/3)
+    const leadCount = [g("lead-qqqspy"), g("lead-spyief"), g("lead-eemspy")].filter(Boolean).length;
+    const s5 = (leadCount >= 2) ? 1 : 0;
+
+    const total = s1 + s2 + s3 + s4 + s5;
+    return { total, breakdown: {s1,s2,s3,s4,s5} };
+  }
+
+  function updateUI(){
+    const { total } = computeScore();
+    document.getElementById("score").textContent = `${total}/5`;
+
+    // Sizing guidance
+    let sizing = "0%";
+    let regime = { cls: "bad", text: "Regime: Risk-Off / Stand Aside", guide: "Score ≤1: avoid swings; hedge only; keep powder dry." };
+    if (total === 5) {
+      sizing = "3%";
+      regime = { cls: "good", text: "Regime: Boom / Druck Mode", guide: "5/5: take every A-grade setup. Let winners run for weeks." };
+    } else if (total === 4) {
+      sizing = "2%";
+      regime = { cls: "good", text: "Regime: Expansion", guide: "4/5: focus on leaders; add on clean pullbacks; partials at 2R+" };
+    } else if (total === 3) {
+      sizing = "1%";
+      regime = { cls: "warn", text: "Regime: Cautious / Selective", guide: "3/5: take only best structures; avoid chop; keep leash tight." };
+    } else if (total === 2) {
+      sizing = "0.5%";
+      regime = { cls: "warn", text: "Regime: Defensive", guide: "2/5: tiny probes only; prioritize capital preservation." };
+    } else {
+      sizing = "0%";
+    }
+
+    const regimeBox = document.getElementById("regime");
+    regimeBox.innerHTML = `<div class="pill ${regime.cls}">${regime.text}</div><div class="small" id="guidetext" style="margin-top:6px;">${regime.guide}</div>`;
+    document.getElementById("sizing").textContent = sizing;
+  }
+
+  // Wire events
+  document.querySelectorAll(".chk").forEach(el=>{
+    el.addEventListener("change", ()=>{ saveState(); updateUI(); });
+  });
+  document.getElementById("reset-week").addEventListener("click", ()=>{
+    if (!confirm("Reset all checks for this week?")) return;
+    document.querySelectorAll(".chk").forEach(el=> el.checked = false);
+    saveState(); updateUI();
+  });
+  document.getElementById("clear-storage").addEventListener("click", ()=>{
+    if (!confirm("Clear saved checks and notes?")) return;
+    localStorage.removeItem("macroChecklistV1");
+    localStorage.removeItem("macroNotesV1");
+    document.querySelectorAll(".chk").forEach(el=> el.checked = false);
+    document.getElementById("notes").value = "";
+    updateUI();
+  });
+  document.getElementById("save-notes").addEventListener("click", ()=>{
+    localStorage.setItem("macroNotesV1", document.getElementById("notes").value);
+  });
+
+  // Init
+  loadState();
+  updateUI();
+})();
+</script>
+</body>
+</html>
