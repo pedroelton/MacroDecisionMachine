@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Macro Decision Machine v1.0 — Checklist & Score</title>
+<title>Macro Decision Machine v1.1 — Checklist, Score & ATR Sizing</title>
 <style>
   :root {
     --bg: #0e1116;
@@ -25,7 +25,7 @@
     margin: 0; background: var(--bg); color: var(--text);
     font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   }
-  .wrap { max-width: 1100px; margin: 32px auto; padding: 0 16px; }
+  .wrap { max-width: 1200px; margin: 32px auto; padding: 0 16px; }
   header {
     background: linear-gradient(180deg, #171c28 0%, #111622 100%);
     border: 1px solid var(--border); border-radius: 14px; padding: 18px 18px;
@@ -38,7 +38,7 @@
     display: grid; gap: 14px;
     grid-template-columns: 1.2fr 1fr;
   }
-  @media (max-width: 980px) {
+  @media (max-width: 1100px) {
     .grid { grid-template-columns: 1fr; }
   }
 
@@ -104,24 +104,35 @@
   .warn { color: #ffe7b6; background:#231e0f; border-color:#4c4024; }
   .bad  { color: #ffc1c1; background:#2a1515; border-color:#5a2a2a; }
 
-  .actions { display: flex; gap: 8px; margin-top: 10px; }
+  .actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
   button {
     cursor: pointer; color: var(--text); background: #1c2436; border: 1px solid var(--border);
     padding: 10px 12px; border-radius: 10px; font-weight: 600;
   }
   button.primary { background: linear-gradient(180deg, #243145 0%, #182237 100%); border-color: #2d3a55; }
   button.danger { background: #2a1820; border-color: #4a2a36; }
-  .note { width: 100%; background: #0f1522; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px; min-height: 84px; }
 
-  .small { font-size: 12px; color: var(--muted); }
+  input[type="text"], input[type="number"], select {
+    width: 100%; background: #0f1522; color: var(--text);
+    border: 1px solid var(--border); border-radius: 10px; padding: 10px;
+  }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .kv { display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; align-items: center; margin-bottom: 8px; }
+  .out {
+    background: #0e1422; border: 1px dashed var(--border); padding: 10px; border-radius: 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  }
+
   .footer { margin-top: 18px; color: var(--muted); font-size: 12px; text-align: center; }
+  .small { font-size: 12px; color: var(--muted); }
 </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <h1>Macro Decision Machine v1.0</h1>
-      <div class="sub">Tick your checks after reviewing each link. Score updates in real time. Your choices persist in this browser.</div>
+      <h1>Macro Decision Machine v1.1</h1>
+      <div class="sub">Tick the checks after reviewing links. Score updates in real time. Sizing uses ATR or explicit stop. State is saved locally.</div>
     </header>
 
     <div class="grid">
@@ -218,7 +229,7 @@
                 <div class="links">
                   <a class="link" href="https://www.tradingview.com/chart/?symbol=OANDA%3AEURUSD" target="_blank">TradingView: EURUSD</a>
                 </div>
-                <div class="help">Use a simple swing-high marker on daily/weekly.</div>
+                <div class="help">Use daily/weekly swing-high marker.</div>
               </div>
             </div>
           </div>
@@ -234,8 +245,8 @@
               <div class="lbl">
                 HYG/LQD ratio making higher highs
                 <div class="links">
-                  <a class="link" href="https://www.tradingview.com/chart/?symbol=AMEX%3AHYG" target="_blank">HYG chart</a>
-                  <a class="link" href="https://www.tradingview.com/chart/?symbol=AMEX%3ALQD" target="_blank">LQD chart</a>
+                  <a class="link" href="https://www.tradingview.com/chart/?symbol=AMEX%3AHYG" target="_blank">HYG</a>
+                  <a class="link" href="https://www.tradingview.com/chart/?symbol=AMEX%3ALQD" target="_blank">LQD</a>
                 </div>
                 <div class="help">Create a custom TV chart: HYG/LQD.</div>
               </div>
@@ -245,7 +256,7 @@
               <div class="lbl">
                 HYG/LQD ratio above 50-day MA
                 <div class="links">
-                  <a class="link" href="https://www.tradingview.com/chart/?symbol=AMEX%3AHYG/AMEX%3ALQD" target="_blank">TradingView: HYG/LQD</a>
+                  <a class="link" href="https://www.tradingview.com/chart/?symbol=AMEX%3AHYG/AMEX%3ALQD" target="_blank">HYG/LQD</a>
                 </div>
               </div>
             </div>
@@ -293,7 +304,7 @@
         </div>
       </div>
 
-      <!-- Right: Score & Guidance -->
+      <!-- Right: Score, Sizing & Notes -->
       <div class="card">
         <h2>Score & Sizing Guidance</h2>
         <div class="section">
@@ -315,6 +326,124 @@
             </div>
           </div>
 
+          <!-- ATR Sizing Calculator -->
+          <div class="card" style="margin-top:12px;">
+            <h2>ATR Position Size Calculator</h2>
+            <div class="section" id="calc">
+              <div class="kv">
+                <label>Account Balance</label>
+                <input type="number" id="acct" placeholder="10000" step="0.01" />
+              </div>
+              <div class="two-col">
+                <div class="kv">
+                  <label>Risk per Trade (%)</label>
+                  <input type="number" id="riskPct" placeholder="1" step="0.01" />
+                </div>
+                <div class="kv">
+                  <label>Risk $ (auto)</label>
+                  <input type="text" id="riskUsd" readonly />
+                </div>
+              </div>
+
+              <div class="kv">
+                <label>Instrument Preset</label>
+                <select id="preset">
+                  <option value="XAUUSD">XAUUSD (Gold, 1 lot = 100 oz; tick 0.01 = $1)</option>
+                  <option value="XAGUSD">XAGUSD (Silver, 1 lot = 5000 oz; tick 0.001 ≈ $5)</option>
+                  <option value="FX">FX Major (1 lot = 100k; value/point varies by pair)</option>
+                  <option value="OIL">Oil CFD (1 lot = 1000 barrels; $1 move ≈ $1000)</option>
+                  <option value="SPX">SP500 CFD (example: $1 per index point per lot)</option>
+                  <option value="NAS">Nasdaq CFD (example: $1 per index point per lot)</option>
+                  <option value="HK50">HK50 CFD (example: $1 per index point per lot)</option>
+                </select>
+              </div>
+
+              <div class="kv">
+                <label>Value per 1.0 price move (for 1 lot) — editable</label>
+                <input type="number" id="valPerPoint" placeholder="1000" step="0.0001" />
+              </div>
+
+              <div class="kv">
+                <label>Sizing Mode</label>
+                <select id="mode">
+                  <option value="ATR">ATR-based (ATR × multiple)</option>
+                  <option value="DIST">Explicit stop distance</option>
+                </select>
+              </div>
+
+              <div id="atrBox">
+                <div class="two-col">
+                  <div class="kv">
+                    <label>ATR (from your chart)</label>
+                    <input type="number" id="atr" placeholder="e.g., 15.2" step="0.0001" />
+                  </div>
+                  <div class="kv">
+                    <label>ATR Multiple</label>
+                    <input type="number" id="atrMult" placeholder="1.5" step="0.1" />
+                  </div>
+                </div>
+              </div>
+
+              <div id="distBox" style="display:none;">
+                <div class="kv">
+                  <label>Explicit Stop Distance (price units)</label>
+                  <input type="number" id="stopDist" placeholder="e.g., 22.5" step="0.0001" />
+                </div>
+              </div>
+
+              <div class="two-col">
+                <div class="kv">
+                  <label>Entry Price</label>
+                  <input type="number" id="entry" placeholder="e.g., 2350.00" step="0.0001" />
+                </div>
+                <div class="kv">
+                  <label>Direction</label>
+                  <select id="dir">
+                    <option value="LONG">Long</option>
+                    <option value="SHORT">Short</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="two-col">
+                <div class="kv">
+                  <label>Computed Stop Distance (auto)</label>
+                  <input type="text" id="stopDistOut" readonly />
+                </div>
+                <div class="kv">
+                  <label>Stop Price (auto)</label>
+                  <input type="text" id="stopPx" readonly />
+                </div>
+              </div>
+
+              <div class="three-col">
+                <div class="kv">
+                  <label>Position Size (lots)</label>
+                  <input type="text" id="lots" class="out" readonly />
+                </div>
+                <div class="kv">
+                  <label>1R Target Price</label>
+                  <input type="text" id="tp1" class="out" readonly />
+                </div>
+                <div class="kv">
+                  <label>2R / 3R Targets</label>
+                  <input type="text" id="tp23" class="out" readonly />
+                </div>
+              </div>
+
+              <div class="small" style="margin-top:8px;">
+                Notes: broker specs vary. Keep “Value per 1.0 move for 1 lot” aligned with your MT5 contract. Examples:
+                XAUUSD: 100 oz/lot → $1 per 0.01 tick ⇒ $100 per 1.0 move. XAGUSD: ≈ $5000 per 1.0 move.
+                Oil: $1000 per 1.0 move. Indices vary by broker. Override as needed.
+              </div>
+
+              <div class="actions">
+                <button class="primary" id="calcGo">Recalculate</button>
+                <button id="saveCalc">Save defaults</button>
+              </div>
+            </div>
+          </div>
+
           <div class="card" style="margin-top:12px;">
             <h2>Notes for the week</h2>
             <div class="section">
@@ -326,7 +455,7 @@
           </div>
 
           <div class="footer">
-            <p>Sizing rule: 1R = 1% of equity (ATR-based stops). Upsize to 2–3% only at 4–5/5 score with strong technicals.</p>
+            <p>Sizing rule: 1R = 1% of equity (ATR-based or explicit stop). Upsize to 2–3% only at 4–5/5 with A-grade structures.</p>
           </div>
         </div>
       </div>
@@ -335,6 +464,7 @@
 
 <script>
 (function(){
+  // ==== Checklist state ====
   const CHECK_KEYS = [
     "liq-fed","liq-hy","liq-dxy",
     "pmi-us","pmi-global",
@@ -343,17 +473,14 @@
     "lead-qqqspy","lead-spyief","lead-eemspy"
   ];
 
-  // Load saved state
-  function loadState(){
+  function loadChecklist(){
     const state = JSON.parse(localStorage.getItem("macroChecklistV1")||"{}");
     CHECK_KEYS.forEach(k=>{
       const el = document.querySelector(`.chk[data-key="${k}"]`);
       if (el && typeof state[k] === "boolean") el.checked = state[k];
     });
-    const notes = localStorage.getItem("macroNotesV1");
-    if (notes !== null) document.getElementById("notes").value = notes;
   }
-  function saveState(){
+  function saveChecklist(){
     const state = {};
     CHECK_KEYS.forEach(k=>{
       const el = document.querySelector(`.chk[data-key="${k}"]`);
@@ -362,36 +489,29 @@
     localStorage.setItem("macroChecklistV1", JSON.stringify(state));
   }
 
-  // Scoring logic
-  function computeScore(){
+  function scoreChecklist(){
     const g = k => document.querySelector(`.chk[data-key="${k}"]`)?.checked;
 
-    // Signal 1: Liquidity (need >=2/3)
     const liqCount = [g("liq-fed"), g("liq-hy"), g("liq-dxy")].filter(Boolean).length;
     const s1 = (liqCount >= 2) ? 1 : 0;
 
-    // Signal 2: PMI (need both)
     const s2 = (g("pmi-us") && g("pmi-global")) ? 1 : 0;
 
-    // Signal 3: USD Trend (need both)
     const s3 = (g("usd-dxy200") && g("usd-eur200")) ? 1 : 0;
 
-    // Signal 4: Credit Appetite (need both)
     const s4 = (g("cr-hh") && g("cr-ma")) ? 1 : 0;
 
-    // Signal 5: Leadership (need >=2/3)
     const leadCount = [g("lead-qqqspy"), g("lead-spyief"), g("lead-eemspy")].filter(Boolean).length;
     const s5 = (leadCount >= 2) ? 1 : 0;
 
     const total = s1 + s2 + s3 + s4 + s5;
-    return { total, breakdown: {s1,s2,s3,s4,s5} };
+    return total;
   }
 
-  function updateUI(){
-    const { total } = computeScore();
+  function applyScoreUI(){
+    const total = scoreChecklist();
     document.getElementById("score").textContent = `${total}/5`;
 
-    // Sizing guidance
     let sizing = "0%";
     let regime = { cls: "bad", text: "Regime: Risk-Off / Stand Aside", guide: "Score ≤1: avoid swings; hedge only; keep powder dry." };
     if (total === 5) {
@@ -406,39 +526,221 @@
     } else if (total === 2) {
       sizing = "0.5%";
       regime = { cls: "warn", text: "Regime: Defensive", guide: "2/5: tiny probes only; prioritize capital preservation." };
-    } else {
-      sizing = "0%";
     }
-
     const regimeBox = document.getElementById("regime");
     regimeBox.innerHTML = `<div class="pill ${regime.cls}">${regime.text}</div><div class="small" id="guidetext" style="margin-top:6px;">${regime.guide}</div>`;
     document.getElementById("sizing").textContent = sizing;
   }
 
-  // Wire events
   document.querySelectorAll(".chk").forEach(el=>{
-    el.addEventListener("change", ()=>{ saveState(); updateUI(); });
+    el.addEventListener("change", ()=>{ saveChecklist(); applyScoreUI(); });
   });
   document.getElementById("reset-week").addEventListener("click", ()=>{
     if (!confirm("Reset all checks for this week?")) return;
     document.querySelectorAll(".chk").forEach(el=> el.checked = false);
-    saveState(); updateUI();
+    saveChecklist(); applyScoreUI();
   });
   document.getElementById("clear-storage").addEventListener("click", ()=>{
     if (!confirm("Clear saved checks and notes?")) return;
     localStorage.removeItem("macroChecklistV1");
     localStorage.removeItem("macroNotesV1");
+    localStorage.removeItem("macroCalcV1");
     document.querySelectorAll(".chk").forEach(el=> el.checked = false);
     document.getElementById("notes").value = "";
-    updateUI();
+    // reset calc fields partially
+    initCalcDefaults(true);
+    applyScoreUI();
   });
+
+  // ==== Notes ====
+  const notesEl = document.getElementById("notes");
+  document.getElementById("save-notes").addEventListener("click", ()=>{
+    localStorage.setItem("macroNotesV1", notesEl.value);
+  });
+
+  // ==== ATR Calculator ====
+  const acctEl = document.getElementById("acct");
+  const riskPctEl = document.getElementById("riskPct");
+  const riskUsdEl = document.getElementById("riskUsd");
+  const presetEl = document.getElementById("preset");
+  const valPerPointEl = document.getElementById("valPerPoint");
+  const modeEl = document.getElementById("mode");
+  const atrBox = document.getElementById("atrBox");
+  const distBox = document.getElementById("distBox");
+  const atrEl = document.getElementById("atr");
+  const atrMultEl = document.getElementById("atrMult");
+  const stopDistEl = document.getElementById("stopDist");
+  const entryEl = document.getElementById("entry");
+  const dirEl = document.getElementById("dir");
+  const stopDistOutEl = document.getElementById("stopDistOut");
+  const stopPxEl = document.getElementById("stopPx");
+  const lotsEl = document.getElementById("lots");
+  const tp1El = document.getElementById("tp1");
+  const tp23El = document.getElementById("tp23");
+  const calcGoEl = document.getElementById("calcGo");
+  const saveCalcEl = document.getElementById("saveCalc");
+
+  const PRESETS = {
+    XAUUSD:  { valPerPoint: 100,  hint: "Gold: 1 lot = 100 oz → $100 per 1.0 move" },
+    XAGUSD:  { valPerPoint: 5000, hint: "Silver: ~5000 oz → ~$5000 per 1.0 move" },
+    FX:      { valPerPoint: 1000, hint: "FX majors: ≈$10 per pip on 1 lot; value per 1.0 is pair-dependent" },
+    OIL:     { valPerPoint: 1000, hint: "Oil CFD: 1 lot = 1000 barrels → $1000 per 1.0 move" },
+    SPX:     { valPerPoint: 1,    hint: "SPX CFD example: $1 per point per lot (override if needed)" },
+    NAS:     { valPerPoint: 1,    hint: "Nasdaq CFD example: $1 per point per lot (override if needed)" },
+    HK50:    { valPerPoint: 1,    hint: "HK50 CFD example: $1 per point per lot (override if needed)" },
+  };
+
+  function initCalcDefaults(reset=false){
+    const saved = JSON.parse(localStorage.getItem("macroCalcV1")||"{}");
+    if (!reset && saved && Object.keys(saved).length) {
+      acctEl.value = saved.acct ?? "";
+      riskPctEl.value = saved.riskPct ?? "1";
+      presetEl.value = saved.preset ?? "XAUUSD";
+      valPerPointEl.value = saved.valPerPoint ?? PRESETS[saved.preset||"XAUUSD"].valPerPoint;
+      modeEl.value = saved.mode ?? "ATR";
+      atrEl.value = saved.atr ?? "";
+      atrMultEl.value = saved.atrMult ?? "1.5";
+      stopDistEl.value = saved.stopDist ?? "";
+      entryEl.value = saved.entry ?? "";
+      dirEl.value = saved.dir ?? "LONG";
+      // trigger visibility
+      toggleModeUI();
+      updateRiskUsd();
+      return;
+    }
+    // fresh defaults
+    acctEl.value = "10000";
+    riskPctEl.value = "1";
+    presetEl.value = "XAUUSD";
+    valPerPointEl.value = PRESETS["XAUUSD"].valPerPoint;
+    modeEl.value = "ATR";
+    atrEl.value = "";
+    atrMultEl.value = "1.5";
+    stopDistEl.value = "";
+    entryEl.value = "";
+    dirEl.value = "LONG";
+    toggleModeUI();
+    updateRiskUsd();
+  }
+
+  function toggleModeUI(){
+    const m = modeEl.value;
+    if (m === "ATR") { atrBox.style.display = ""; distBox.style.display = "none"; }
+    else { atrBox.style.display = "none"; distBox.style.display = ""; }
+  }
+
+  function updateRiskUsd(){
+    const bal = parseFloat(acctEl.value || "0");
+    const rp = parseFloat(riskPctEl.value || "0");
+    const ru = (bal * rp / 100);
+    riskUsdEl.value = isFinite(ru) ? ru.toFixed(2) : "";
+  }
+
+  function saveCalc(){
+    const save = {
+      acct: acctEl.value,
+      riskPct: riskPctEl.value,
+      preset: presetEl.value,
+      valPerPoint: valPerPointEl.value,
+      mode: modeEl.value,
+      atr: atrEl.value,
+      atrMult: atrMultEl.value,
+      stopDist: stopDistEl.value,
+      entry: entryEl.value,
+      dir: dirEl.value
+    };
+    localStorage.setItem("macroCalcV1", JSON.stringify(save));
+  }
+
+  function recalc(){
+    updateRiskUsd();
+    const riskUsd = parseFloat(riskUsdEl.value || "0");
+    const valPerPoint = parseFloat(valPerPointEl.value || "0");
+    const entry = parseFloat(entryEl.value || "0");
+    const dir = dirEl.value;
+
+    let stopDistance = 0;
+    if (modeEl.value === "ATR") {
+      const atr = parseFloat(atrEl.value || "0");
+      const mult = parseFloat(atrMultEl.value || "0");
+      stopDistance = atr * mult;
+    } else {
+      stopDistance = parseFloat(stopDistEl.value || "0");
+    }
+
+    // Output stop distance
+    stopDistOutEl.value = isFinite(stopDistance) ? stopDistance.toFixed(5) : "";
+
+    // Stop price
+    let stopPx = "";
+    if (entry && stopDistance) {
+      stopPx = (dir === "LONG") ? (entry - stopDistance) : (entry + stopDistance);
+    }
+    stopPxEl.value = isFinite(stopPx) ? (+stopPx).toFixed(5) : "";
+
+    // Position size (lots) = Risk$ / (stopDistance * valuePerPoint)
+    let lots = 0;
+    if (riskUsd && stopDistance && valPerPoint) {
+      lots = riskUsd / (stopDistance * valPerPoint);
+    }
+    lotsEl.value = isFinite(lots) ? lots.toFixed(4) : "";
+
+    // Targets
+    if (entry && stopDistance) {
+      const tp1 = (dir === "LONG") ? (entry + stopDistance) : (entry - stopDistance);
+      const tp2 = (dir === "LONG") ? (entry + stopDistance*2) : (entry - stopDistance*2);
+      const tp3 = (dir === "LONG") ? (entry + stopDistance*3) : (entry - stopDistance*3);
+      tp1El.value = isFinite(tp1) ? tp1.toFixed(5) : "";
+      tp23El.value = (isFinite(tp2) && isFinite(tp3)) ? `2R: ${tp2.toFixed(5)}  |  3R: ${tp3.toFixed(5)}` : "";
+    } else {
+      tp1El.value = ""; tp23El.value = "";
+    }
+  }
+
+  // Preset changes update value per point
+  presetEl.addEventListener("change", ()=>{
+    const p = PRESETS[presetEl.value] || PRESETS.XAUUSD;
+    valPerPointEl.value = p.valPerPoint;
+    recalc();
+  });
+
+  // Mode show/hide
+  modeEl.addEventListener("change", ()=>{ toggleModeUI(); recalc(); });
+
+  // Inputs re-calc
+  [acctEl, riskPctEl, valPerPointEl, atrEl, atrMultEl, stopDistEl, entryEl, dirEl].forEach(el=>{
+    el.addEventListener("input", recalc);
+    el.addEventListener("change", recalc);
+  });
+
+  calcGoEl.addEventListener("click", recalc);
+  saveCalcEl.addEventListener("click", ()=>{ saveCalc(); alert("Saved."); });
+
+  // Persist checklist & notes
   document.getElementById("save-notes").addEventListener("click", ()=>{
     localStorage.setItem("macroNotesV1", document.getElementById("notes").value);
   });
 
-  // Init
-  loadState();
-  updateUI();
+  // Init everything
+  (function init(){
+    // notes
+    const notes = localStorage.getItem("macroNotesV1");
+    if (notes !== null) document.getElementById("notes").value = notes;
+
+    // checklist
+    loadChecklist();
+    applyScoreUI();
+
+    // calc defaults
+    initCalcDefaults(false);
+    recalc();
+
+    // wire checklist
+    document.querySelectorAll(".chk").forEach(el=>{
+      el.addEventListener("change", ()=>{ saveChecklist(); applyScoreUI(); });
+    });
+  })();
+
 })();
 </script>
 </body>
